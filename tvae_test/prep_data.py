@@ -45,24 +45,24 @@ np.savez('data_in.npz', data = rs_out)
 
 
 #%% test
-data1 = np.load(os.path.join(datadir, fileList[1]))
-data2 = np.load(os.path.join(datadir, fileList[2]))
-
-keypoints1 = data1['keypoints']
-keypoints1 = keypoints1[:, 0, :]
-x_kps = keypoints1[:, 0]
-y_kps = keypoints1[:, 1]
-out1 = np.zeros(keypoints1.shape)
-out1 = out1.reshape(out1.shape[0], -1)
-out1[:, ::2] = x_kps
-out1[:, 1::2] = y_kps
-
-keypoints2 = data2['keypoints']
-keypoints2 = keypoints2[:, 0, :]
-x_kps = keypoints2[:, 0]
-y_kps = keypoints2[:, 1]
-out2 = np.zeros(keypoints2.shape)
-out2 = out2.reshape(out2.shape[0], -1)
-out2[:, ::2] = x_kps
-out2[:, 1::2] = y_kps
-np.row_stack
+# data1 = np.load(os.path.join(datadir, fileList[1]))
+# data2 = np.load(os.path.join(datadir, fileList[2]))
+#
+# keypoints1 = data1['keypoints']
+# keypoints1 = keypoints1[:, 0, :]
+# x_kps = keypoints1[:, 0]
+# y_kps = keypoints1[:, 1]
+# out1 = np.zeros(keypoints1.shape)
+# out1 = out1.reshape(out1.shape[0], -1)
+# out1[:, ::2] = x_kps
+# out1[:, 1::2] = y_kps
+#
+# keypoints2 = data2['keypoints']
+# keypoints2 = keypoints2[:, 0, :]
+# x_kps = keypoints2[:, 0]
+# y_kps = keypoints2[:, 1]
+# out2 = np.zeros(keypoints2.shape)
+# out2 = out2.reshape(out2.shape[0], -1)
+# out2[:, ::2] = x_kps
+# out2[:, 1::2] = y_kps
+# np.row_stack
