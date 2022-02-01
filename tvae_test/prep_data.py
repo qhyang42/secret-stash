@@ -2,9 +2,34 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import glob
 
-datadir = 'Y:/Parkerlab/Behavior/Clozapine'
-#datadir = '/Volumes/fsmresfiles/BasicSciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine'
+def prep_data_tvae(datadir, filelist, slength = 10):
+    out = np.array([])
+    for fileName in filelist:
+        data = np.load(os.path.join(datadir, fileName))
+        keypoints = data['keypoints']
+        keypoints = keypoints[:, 0, :]
+        x_kps = keypoints[:, 0]
+        y_kps = keypoints[:, 1]
+        out_this = np.zeros(keypoints.shape)
+        out_this = out_this.reshape(out_this.shape[0], -1)
+        out_this[:, ::2] = x_kps
+        out_this[:, 1::2] = y_kps
+        if out.size == 0:
+            out = out_this
+        else:
+            out = np.row_stack([out, out_this])
+
+    # reshape ts
+    rs_out = np.zeros([out.shape[0], slength, out.shape[1]])
+    for i in range(out.shape[0] - slength):
+        rs_out[i, :, :] = out[i:i + slength, :]
+    return rs_out
+#%%
+# datadir = 'Y:/Parkerlab/Behavior/Clozapine'
+# datadir = '/Volumes/fsmresfiles/BasicSciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine'
+datadir = '/run/user/1006/gvfs/smb-share:server=fsmresfiles.fsm.northwestern.edu,share=fsmresfiles/Basic_Sciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine/HighDose/Amph/output_v1_8'
 fileList = ['HighDose/Amph/output_v1_8/20191207_m085_clo04_amph/20191207_m085_clo04_amph_raw_feat_top_v1_8.npz',
             'HighDose/Amph/output_v1_8/20191207_m971_clo04_amph/20191207_m971_clo04_amph_raw_feat_top_v1_8.npz',
             'HighDose/Control/output_v1_8/20191207_m085_clo04/20191207_m085_clo04_raw_feat_top_v1_8.npz',
@@ -18,27 +43,8 @@ fileList = ['HighDose/Amph/output_v1_8/20191207_m085_clo04_amph/20191207_m085_cl
             'Vehicle/Control/output_v1_8/20191205_m085_clo01/20191205_m085_clo01_raw_feat_top_v1_8.npz',
             'Vehicle/Control/output_v1_8/20191205_m971_clo01/20191205_m971_clo01_raw_feat_top_v1_8.npz']
             #read two file from each condition. same mice
-out = np.array([])
-for fileName in fileList:
-    data = np.load(os.path.join(datadir, fileName))
-    keypoints = data['keypoints']
-    keypoints = keypoints[:, 0, :]
-    x_kps = keypoints[:, 0]
-    y_kps = keypoints[:, 1]
-    out_this = np.zeros(keypoints.shape)
-    out_this = out_this.reshape(out_this.shape[0], -1)
-    out_this[:, ::2] = x_kps
-    out_this[:, 1::2] = y_kps
-    if out.size == 0:
-        out = out_this
-    else:
-        out = np.row_stack([out, out_this])
 
-# reshape ts
-slength = 10
-rs_out = np.zeros([out.shape[0], slength, out.shape[1]])
-for i in range(out.shape[0]-slength):
-    rs_out[i, :, :] = out[i:i+slength, :]
+rs_out = prep_data_tvae(datadir, fileList)
 
 # save
 # np.savez('data_in.npz', data = rs_out)
@@ -61,57 +67,27 @@ fileList_train = ['HighDose/Amph/output_v1_8/20191207_m085_clo04_amph/20191207_m
             'Vehicle/Amph/output_v1_8/20191205_m971_clo01_amph/20191205_m971_clo01_amph_raw_feat_top_v1_8.npz',
             'Vehicle/Control/output_v1_8/20191205_m971_clo01/20191205_m971_clo01_raw_feat_top_v1_8.npz']
             #read two file from each condition. same mice
-out = np.array([])
-for fileName in fileList_train:
-    data = np.load(os.path.join(datadir, fileName))
-    keypoints = data['keypoints']
-    keypoints = keypoints[:, 0, :]
-    x_kps = keypoints[:, 0]
-    y_kps = keypoints[:, 1]
-    out_this = np.zeros(keypoints.shape)
-    out_this = out_this.reshape(out_this.shape[0], -1)
-    out_this[:, ::2] = x_kps
-    out_this[:, 1::2] = y_kps
-    if out.size == 0:
-        out = out_this
-    else:
-        out = np.row_stack([out, out_this])
-
-# reshape ts
-slength = 10
-rs_out_train = np.zeros([out.shape[0], slength, out.shape[1]])
-for i in range(out.shape[0]-slength):
-    rs_out_train[i, :, :] = out[i:i+slength, :]
+rs_out_train = prep_data_tvae(datadir, fileList_train)
 
 
 fileList_test = [ 'LowDose/Amph/output_v1_8/20191206_m085_clo05_amph/20191206_m085_clo05_amph_raw_feat_top_v1_8.npz',
                 'LowDose/Control/output_v1_8/20191206_m971_clo05/20191206_m971_clo05_raw_feat_top_v1_8.npz',
                 'Vehicle/Control/output_v1_8/20191205_m085_clo01/20191205_m085_clo01_raw_feat_top_v1_8.npz',]
                 # read two file from each condition. same mice
-out = np.array([])
-for fileName in fileList_test:
-    data = np.load(os.path.join(datadir, fileName))
-    keypoints = data['keypoints']
-    keypoints = keypoints[:, 0, :]
-    x_kps = keypoints[:, 0]
-    y_kps = keypoints[:, 1]
-    out_this = np.zeros(keypoints.shape)
-    out_this = out_this.reshape(out_this.shape[0], -1)
-    out_this[:, ::2] = x_kps
-    out_this[:, 1::2] = y_kps
-    if out.size == 0:
-         out = out_this
-    else:
-        out = np.row_stack([out, out_this])
-
-# reshape ts
-slength = 10
-rs_out_test = np.zeros([out.shape[0], slength, out.shape[1]])
-for i in range(out.shape[0] - slength):
-     rs_out_test[i, :, :] = out[i:i + slength, :]
+rs_out_test = prep_data_tvae(datadir, fileList_test)
 
 # save
 np.savez('data_in_split.npz', data_train = rs_out_train, data_test = rs_out_test)
+
+#%% single video. dataloader now require data_train and data_test in data.npz
+datadir = '/run/user/1006/gvfs/smb-share:server=fsmresfiles.fsm.northwestern.edu,share=fsmresfiles/Basic_Sciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine/'
+filelist_test_single = glob.glob(datadir + '*/*/*/*m972*/*v1_8.npz') #run for m972 in each conditions
+
+idx = 0
+for filedir in iter(filelist_test_single):
+    data_test = prep_data_tvae(datadir='', filelist=filelist_test_single)
+    idx+=1
+    np.savez('/media/storage/qiaohan/tvae/test_input/test_data_out_' + str(idx) + '.npz', data_train = data_test, data_test = data_test )
 
 #%% test
 # data1 = np.load(os.path.join(datadir, fileList[1]))
