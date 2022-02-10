@@ -80,14 +80,17 @@ rs_out_test = prep_data_tvae(datadir, fileList_test)
 np.savez('data_in_split.npz', data_train = rs_out_train, data_test = rs_out_test)
 
 #%% single video. dataloader now require data_train and data_test in data.npz
+#mouse = 'm972'
+mouse = 'm485'
 datadir = '/run/user/1006/gvfs/smb-share:server=fsmresfiles.fsm.northwestern.edu,share=fsmresfiles/Basic_Sciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine/'
-filelist_test_single = glob.glob(datadir + '*/*/*/*m972*/*v1_8.npz') #run for m972 in each conditions
+filelist_test_single = glob.glob(datadir+'*/*/*/*'+mouse+'*/*v1_8.npz') #run for m972 in each conditions
 
-idx = 0
 for filedir in iter(filelist_test_single):
     data_test = prep_data_tvae(datadir='', filelist=filelist_test_single)
-    idx+=1
-    np.savez('/media/storage/qiaohan/tvae/test_input/test_data_out_' + str(idx) + '.npz', data_train = data_test, data_test = data_test )
+    filename = os.path.basename(filedir).split('.')[0]
+    np.savez('/media/storage/qiaohan/tvae/test_input/test_data_in_' + filename + '.npz', data_train = data_test, data_test = data_test )
+    np.savez('/media/storage/qiaohan/tvae/test_input/test_data_out_' + filename + '.npz', data_train = data_test, data_test = data_test )
+
 
 #%% test
 # data1 = np.load(os.path.join(datadir, fileList[1]))
