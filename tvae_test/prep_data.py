@@ -4,28 +4,61 @@ import os
 import matplotlib.pyplot as plt
 import glob
 
-def prep_data_tvae(datadir, filelist, slength = 10):
-    out = np.array([])
-    for fileName in filelist:
-        data = np.load(os.path.join(datadir, fileName))
-        keypoints = data['keypoints']
-        keypoints = keypoints[:, 0, :]
-        x_kps = keypoints[:, 0]
-        y_kps = keypoints[:, 1]
-        out_this = np.zeros(keypoints.shape)
-        out_this = out_this.reshape(out_this.shape[0], -1)
-        out_this[:, ::2] = x_kps
-        out_this[:, 1::2] = y_kps
-        if out.size == 0:
-            out = out_this
-        else:
-            out = np.row_stack([out, out_this])
 
+def rotate(coord, ref_point1, ref_point2): # coord need to be a column vector
+    ycords = ref_point2[1]-ref_point1[1]
+    xcords = ref_point2[0]-ref_point1[0]
+    angle = np.arctan2(ycords, xcords)
+    rot = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+    coord_r = np.dot(rot, coord)
+
+    return coord_r
+
+
+def prep_data_tvae(datadir, fileName, slength = 10, center_data = False):
+    out = np.array([])
+    keypoints = np.load(os.path.join(datadir, fileName))['keypoints']
+    centroid_x = np.load(os.path.join(datadir, fileName))['data_smooth'][0, :, 14]
+    centroid_y = np.load(os.path.join(datadir, fileName))['data_smooth'][0, :, 15]
+    keypoints = keypoints[:, 0, :]
+    x_kps = keypoints[:, 0]
+    y_kps = keypoints[:, 1]
+    out_this = np.zeros(keypoints.shape)
+    out_this = out_this.reshape(out_this.shape[0], -1)
+    out_this[:, ::2] = x_kps
+    out_this[:, 1::2] = y_kps
+    if out.size == 0:
+        out = out_this
+    else:
+        out = np.row_stack([out, out_this])
     # reshape ts
-    rs_out = np.zeros([out.shape[0], slength, out.shape[1]])
+    rs_out = np.zeros([out.shape[0]-slength, slength, out.shape[1]])
     for i in range(out.shape[0] - slength):
         rs_out[i, :, :] = out[i:i + slength, :]
+
+    if center_data is True: # center the 10fr sequence to the start of each sequence
+        for ridx in range(rs_out.shape[0]):
+            rs_out[ridx, :, ::2] = rs_out[ridx, :, ::2]-centroid_x[ridx]
+            rs_out[ridx, :, 1::2] = rs_out[ridx, :, 1::2]-centroid_y[ridx]
+            # rotate to make neck-tail axis horizontal for startin frame
+            ref2 = rs_out[ridx, 0, 6:8] # neck
+            ref1 = rs_out[ridx, 0, 12:14] # tailbase
+            for frmidx in range(10):
+                for kp_idx in range(0, 14, 2):# do for each keypoint
+                    cp = rs_out[ridx, frmidx, kp_idx:kp_idx+2]
+                    cpr = rotate(cp, ref1, ref2)
+                    rs_out[ridx, frmidx, kp_idx:kp_idx+2] = cpr
     return rs_out
+
+
+plt.plot(rs_out[0, 0, ::2], rs_out[0, 0, 1::2])
+# plt.scatter(x=centroid_x[1]-centroid_x[0], y=centroid_y[1]-centroid_y[0])
+plt.title('rotated')
+plt.show()
+
+plt.scatter(x=rs_out[0, 0, 0], y=rs_out[0, 0, 1])
+# plt.scatter(x=rs_out[0, 0, 12], y=rs_out[0, 0, 13])
+plt.show()
 #%%
 # datadir = 'Y:/Parkerlab/Behavior/Clozapine'
 # datadir = '/Volumes/fsmresfiles/BasicSciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine'

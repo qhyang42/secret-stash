@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture
 import glob
+from itertools import groupby
 
 # load and split data
 def load_split_data(path: str, split = True, valprop = 0.2):
@@ -20,26 +21,32 @@ def load_split_data(path: str, split = True, valprop = 0.2):
         embed_train = embed[mask, :]
     return embed_train, embed_test
 
+# calculate bout length
+def compute_bout_length(seq):
+    bout_length = np.array([len(list(g)) for i, g in groupby(seq)])
+    return bout_length.mean(), bout_length.std(), bout_length
 
-#%%
-gm_bic = np.array([])
+# gm_bic = np.array([])
+#
+# for n_comp in range(140, 150):
+#     gm = GaussianMixture(n_components=n_comp, covariance_type='diag', max_iter=1000).fit(embed_train)
+#     gm_bic = np.append(gm_bic, gm.bic(embed_test))
 
-for n_comp in range(140, 150):
-    gm = GaussianMixture(n_components=n_comp, covariance_type='diag', max_iter=1000).fit(embed_train)
-    gm_bic = np.append(gm_bic, gm.bic(embed_test))
+#%% load data
+file_path = 'C:/Users/qyx1327/Documents/results/tvae/embeddings/result_zeq8.npz'
+embed_train, embed_test = load_split_data(file_path)
+#%% train and save the gmms, calculate bic
 
-
-#%% save the gmms
-
-# gm_aic = np.array([])
 gm = []
 gm_bic = np.array([])
 for n_comp in range(5, 100):
     gm.append(GaussianMixture(n_components=n_comp, covariance_type='diag', max_iter=1000).fit(embed_train))
     gm_bic = np.append(gm_bic, gm[-1].bic(embed_test))
 
-with open('msplit_gmm_model.pickle', 'wb') as fhandle:
+with open('zeq8_gmm_model.pickle', 'wb') as fhandle:
     pickle.dump(gm, fhandle)
+
+np.save('zeq8_bic.npy', gm_bic)
 
 #%% plot
 # xaxis = np.arange(5, 100)
@@ -48,24 +55,18 @@ plt.plot(gm_bic)
 # plt.xticks(np.arange(5, 100, 20))
 plt.xlabel('n_component')
 plt.ylabel('bic')
-plt.title('manual split training/testing')
+plt.title('z=8')
 plt.show()
 
 # np.save('C:/Users/qyx1327/Documents/results/msplit_bic.npy', gm_bic)
-#%%
-with open('gmm_model.pickle', 'rb') as fhandle:
-    gm = pickle.load(fhandle)
 
-gm_bic = np.array([])
-for m_idx in range(95):
-    gm_bic = np.append(gm_bic, gm[m_idx].bic(embed_test))
-
-#%% predict and save labels. run for one additional video and compare with annotation
-# choose n_component = 40
+#%% predict and save labels. run for additional video and compare with annotation
+# choose n_component = 30
 with open('msplit_gmm_model.pickle', 'rb') as fhandle:
     gm = pickle.load(fhandle)
-current_model = gm[35]
-file_list = glob.glob('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/*')
+
+current_model = gm[20]
+file_list = glob.glob('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/m485/*')
 for file in iter(file_list):
     embed = load_split_data(file, split=False)[0] # take either one
     labels = current_model.predict(embed)
@@ -73,6 +74,9 @@ for file in iter(file_list):
     labels = np.pad(labels, (4,5))
     file_name = os.path.basename(file).split('.')[0]
     np.save(file_name+'_labels', labels)
+
+#%% cluster the umap space
+
 
 #%% save label files into bento compatible text file
 
@@ -86,6 +90,7 @@ for file in iter(file_list):
 
 #%% plot embeddings in UMAP
 import umap
+
 file = 'C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1.npz'
 embed = np.load(file)['embeddings']
 labels = np.load('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1_labels.npy')
@@ -93,8 +98,11 @@ labels = labels[4:-5]
 
 #%%
 # plt.scatter(x = test[:, 0], y = test[:, 1])
-umap_embed = umap.UMAP(n_neighbors=50, min_dist=0.01).fit(embed)
+umap_embed = umap.UMAP(n_neighbors=100, min_dist=0.01).fit(embed)
+
 umap.plot.points(umap_embed, labels=labels)
+plt.legend('')
+plt.title('z=8')
 plt.show()
 
 #%% try tsne
@@ -107,4 +115,12 @@ labels = labels-1
 plt.figure()
 plt.scatter(x=tsne_embed[:, 0], y=tsne_embed[:, 1], c=palette[labels.astype(int)])
 plt.title('perplexity=70')
+plt.show()
+
+#%%
+plt.plot(embed[100:200, 0])
+plt.show()
+
+
+plt.hist(compute_bout_length(labels)[2])
 plt.show()
