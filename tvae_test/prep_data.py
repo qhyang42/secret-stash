@@ -18,12 +18,12 @@ def rotate(coord, ref_point1, ref_point2): # coord need to be a column vector
 
 def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
     out = np.array([])
-    centroid_x = np.array([])
-    centroid_y = np.array([])
+    # centroid_x = np.array([])
+    # centroid_y = np.array([])
     for fileName in filelist:
         keypoints = np.load(os.path.join(datadir, fileName))['keypoints']
-        centroid_x_current = np.load(os.path.join(datadir, fileName))['data_smooth'][0, :, 14]
-        centroid_y_current = np.load(os.path.join(datadir, fileName))['data_smooth'][0, :, 15]
+        # centroid_x_current = np.load(os.path.join(datadir, fileName))['data_smooth'][0, :, 14]
+        # centroid_y_current = np.load(os.path.join(datadir, fileName))['data_smooth'][0, :, 15]
         keypoints = keypoints[:, 0, :]
         x_kps = keypoints[:, 0]
         y_kps = keypoints[:, 1]
@@ -33,12 +33,12 @@ def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
         out_this[:, 1::2] = y_kps
         if out.size == 0:
             out = out_this
-            centroid_x = centroid_x_current
-            centroid_y = centroid_y_current
+            # centroid_x = centroid_x_current
+            # centroid_y = centroid_y_current
         else:
             out = np.row_stack([out, out_this])
-            centroid_x = np.append(centroid_x, centroid_x_current)
-            centroid_y = np.append(centroid_y, centroid_y_current)
+            # centroid_x = np.append(centroid_x, centroid_x_current)
+            # centroid_y = np.append(centroid_y, centroid_y_current)
     # reshape ts
     rs_out = np.zeros([out.shape[0]-slength, slength, out.shape[1]])
     for i in range(out.shape[0] - slength):
@@ -46,12 +46,14 @@ def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
 
     if center_data is True: # center the 10fr sequence to the start of each sequence
         for ridx in range(rs_out.shape[0]):
-            rs_out[ridx, :, ::2] = rs_out[ridx, :, ::2]-centroid_x[ridx]
-            rs_out[ridx, :, 1::2] = rs_out[ridx, :, 1::2]-centroid_y[ridx]
-            # rotate to make neck-tail axis horizontal for starting frame
-            ref2 = rs_out[ridx, 0, 6:8] # neck
-            ref1 = rs_out[ridx, 0, 12:14] # tailbase
-            for frmidx in range(10):
+            # rs_out[ridx, :, ::2] = rs_out[ridx, :, ::2]-centroid_x[ridx]
+            # rs_out[ridx, :, 1::2] = rs_out[ridx, :, 1::2]-centroid_y[ridx]
+            rs_out[ridx, :, ::2] = rs_out[ridx, :, ::2] - rs_out[ridx, 0, 6] # center around neck
+            rs_out[ridx, :, 1::2] = rs_out[ridx, :, 1::2] - rs_out[ridx, 0, 7]
+            # rotate to make tail face (1,0)
+            ref1 = rs_out[ridx, 0, 6:8] # neck
+            ref2 = rs_out[ridx, 0, 12:14] # tailbase
+            for frmidx in range(2, 10):
                 for kp_idx in range(0, 14, 2):# do for each keypoint
                     cp = rs_out[ridx, frmidx, kp_idx:kp_idx+2]
                     cpr = rotate(cp, ref1, ref2)
@@ -59,10 +61,10 @@ def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
     return rs_out
 
 
-plt.plot(rs_out_train_orig[3, 0, ::2], rs_out_train_orig[3, 0, 1::2])
-# # plt.scatter(x=centroid_x[1]-centroid_x[0], y=centroid_y[1]-centroid_y[0])
-plt.title('orig, frm3')
-plt.show()
+# plt.plot(rs_out_rot[0, 2, ::2], rs_out_rot[0, 2, 1::2])
+# # # plt.scatter(x=centroid_x[1]-centroid_x[0], y=centroid_y[1]-centroid_y[0])
+# plt.title('rotated, frm2')
+# plt.show()
 #
 # plt.scatter(x=rs_out[0, 0, 0], y=rs_out[0, 0, 1])
 # # plt.scatter(x=rs_out[0, 0, 12], y=rs_out[0, 0, 13])
