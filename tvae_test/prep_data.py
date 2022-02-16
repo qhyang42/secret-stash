@@ -18,7 +18,7 @@ def rotate(coord, ref_point1, ref_point2): # coord need to be a column vector
 
 def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
     if type(filelist)==str:
-        filelist = filelist.split() # converts str to list if single file is given
+        filelist = [filelist] # converts str to list if single file is given
 
     out = np.array([])
     # centroid_x = np.array([])
