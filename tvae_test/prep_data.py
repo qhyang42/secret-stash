@@ -53,7 +53,7 @@ def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
             # rotate to make tail face (1,0)
             ref1 = rs_out[ridx, 0, 6:8] # neck
             ref2 = rs_out[ridx, 0, 12:14] # tailbase
-            for frmidx in range(2, 10):
+            for frmidx in range(10):
                 for kp_idx in range(0, 14, 2):# do for each keypoint
                     cp = rs_out[ridx, frmidx, kp_idx:kp_idx+2]
                     cpr = rotate(cp, ref1, ref2)
@@ -61,9 +61,9 @@ def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
     return rs_out
 
 
-# plt.plot(rs_out_rot[0, 2, ::2], rs_out_rot[0, 2, 1::2])
+# plt.plot(rs_out_train[40, 0, ::2], rs_out_train[40, 0, 1::2])
 # # # plt.scatter(x=centroid_x[1]-centroid_x[0], y=centroid_y[1]-centroid_y[0])
-# plt.title('rotated, frm2')
+# plt.title('rotated, frm0')
 # plt.show()
 #
 # plt.scatter(x=rs_out[0, 0, 0], y=rs_out[0, 0, 1])
