@@ -17,6 +17,9 @@ def rotate(coord, ref_point1, ref_point2): # coord need to be a column vector
 
 
 def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
+    if type(filelist)==str:
+        filelist = filelist.split() # converts str to list if single file is given
+
     out = np.array([])
     # centroid_x = np.array([])
     # centroid_y = np.array([])
@@ -129,8 +132,8 @@ mouse = 'm485'
 datadir = '/run/user/1006/gvfs/smb-share:server=fsmresfiles.fsm.northwestern.edu,share=fsmresfiles/Basic_Sciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine/'
 filelist_test_single = glob.glob(datadir+'*/*/*/*'+mouse+'*/*v1_8.npz') #run for m972 in each conditions
 
-for filedir in iter(filelist_test_single):
-    data_test = prep_data_tvae(datadir='', filelist=filelist_test_single)
+for filedir in filelist_test_single:
+    data_test = prep_data_tvae(datadir='', filelist=filedir)
     filename = os.path.basename(filedir).split('.')[0]
     np.savez('/media/storage/qiaohan/tvae/test_input/test_data_in_' + filename + '.npz', data_train = data_test, data_test = data_test )
     np.savez('/media/storage/qiaohan/tvae/test_input/test_data_out_' + filename + '.npz', data_train = data_test, data_test = data_test )
@@ -158,3 +161,6 @@ for filedir in iter(filelist_test_single):
 # out2[:, ::2] = x_kps
 # out2[:, 1::2] = y_kps
 # np.row_stack
+
+for name in iter("filelist_test_single"):
+    print(name)
