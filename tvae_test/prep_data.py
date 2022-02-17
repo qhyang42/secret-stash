@@ -1,4 +1,6 @@
 #%% prepare data for training tvae
+import copy
+
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -42,32 +44,36 @@ def prep_data_tvae(datadir, filelist, slength = 10, center_data = False):
             out = np.row_stack([out, out_this])
             # centroid_x = np.append(centroid_x, centroid_x_current)
             # centroid_y = np.append(centroid_y, centroid_y_current)
-    # reshape ts
+    # reshape output
     rs_out = np.zeros([out.shape[0]-slength, slength, out.shape[1]])
     for i in range(out.shape[0] - slength):
         rs_out[i, :, :] = out[i:i + slength, :]
 
-    if center_data is True: # center the 10fr sequence to the start of each sequence
+    if center_data is True:  # center the 10fr sequence to the start of each sequence
         for ridx in range(rs_out.shape[0]):
             # rs_out[ridx, :, ::2] = rs_out[ridx, :, ::2]-centroid_x[ridx]
             # rs_out[ridx, :, 1::2] = rs_out[ridx, :, 1::2]-centroid_y[ridx]
             rs_out[ridx, :, ::2] = rs_out[ridx, :, ::2] - rs_out[ridx, 0, 6] # center around neck
             rs_out[ridx, :, 1::2] = rs_out[ridx, :, 1::2] - rs_out[ridx, 0, 7]
             # rotate to make tail face (1,0)
-            ref1 = rs_out[ridx, 0, 6:8] # neck
-            ref2 = rs_out[ridx, 0, 12:14] # tailbase
+            ref1 = copy.deepcopy(rs_out[ridx, 0, 6:8])  # neck
+            ref2 = copy.deepcopy(rs_out[ridx, 0, 12:14])  # tailbase
             for frmidx in range(10):
-                for kp_idx in range(0, 14, 2):# do for each keypoint
+                for kp_idx in range(0, 14, 2):  # do for each keypoint
                     cp = rs_out[ridx, frmidx, kp_idx:kp_idx+2]
                     cpr = rotate(cp, ref1, ref2)
                     rs_out[ridx, frmidx, kp_idx:kp_idx+2] = cpr
     return rs_out
 
+#%% test rotation plot
 
-# plt.plot(rs_out_train[40, 0, ::2], rs_out_train[40, 0, 1::2])
-# # # plt.scatter(x=centroid_x[1]-centroid_x[0], y=centroid_y[1]-centroid_y[0])
-# plt.title('rotated, frm0')
-# plt.show()
+seqidx = 150
+for i in range(10):
+    plt.plot(rs_out_train[seqidx, i, ::2], rs_out_train[seqidx, i, 1::2])
+    # # plt.scatter(x=centroid_x[1]-centroid_x[0], y=centroid_y[1]-centroid_y[0])
+plt.legend(['frame' + str(i) for i in range(10)])
+plt.title('rotated, seq ' + str(seqidx))
+plt.show()
 #
 # plt.scatter(x=rs_out[0, 0, 0], y=rs_out[0, 0, 1])
 # # plt.scatter(x=rs_out[0, 0, 12], y=rs_out[0, 0, 13])
@@ -125,6 +131,7 @@ rs_out_test = prep_data_tvae(datadir=datadir, filelist=fileList_test, center_dat
 
 # save
 np.savez('/media/storage/qiaohan/tvae/data_in_split_centered.npz', data_train = rs_out_train, data_test = rs_out_test)
+np.savez('/media/storage/qiaohan/tvae/data_out_split_centered.npz', data_train = rs_out_train, data_test = rs_out_test)
 
 #%% single video. dataloader now require data_train and data_test in data.npz
 #mouse = 'm972'
@@ -161,6 +168,3 @@ for filedir in filelist_test_single:
 # out2[:, ::2] = x_kps
 # out2[:, 1::2] = y_kps
 # np.row_stack
-
-for name in iter("filelist_test_single"):
-    print(name)
