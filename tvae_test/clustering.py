@@ -60,8 +60,8 @@ plt.show()
 
 # np.save('C:/Users/qyx1327/Documents/results/msplit_bic.npy', gm_bic)
 
-#%% predict and save labels. run for additional video and compare with annotation
-# choose n_component = 30
+#%% predict and save labels for testing videos. view labels with video in bento
+# choose n_component = 25
 with open('msplit_gmm_model.pickle', 'rb') as fhandle:
     gm = pickle.load(fhandle)
 
@@ -73,20 +73,18 @@ for file in iter(file_list):
     labels = labels+1
     labels = np.pad(labels, (4,5))
     file_name = os.path.basename(file).split('.')[0]
-    np.save(file_name+'_labels', labels)
-
-#%% cluster the umap space
-
-
-#%% save label files into bento compatible text file
-
-label_list = ['label'+str(number) for number in range(41)]
-file_list = glob.glob('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/*.npy')
-for file in iter(file_list):
-    labels = np.load(file)
-    file_name = os.path.basename(file).split('.')[0]
-    dump_labels_bento(labels=labels, filename='C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/'+file_name+'_bent.annot', beh_list=label_list)
     # np.save(file_name+'_labels', labels)
+    label_list = ['label' + str(number) for number in range(25)] # same length as number of nonzero clusters
+    dump_labels_bento(labels=labels, filename='C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/m485/dino/'+file_name+'_bent.annot', beh_list=label_list)
+
+
+
+# file_list = glob.glob('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/m972/*.npy')
+# for file in iter(file_list):
+#     labels = np.load(file)
+#     file_name = os.path.basename(file).split('.')[0]
+#     dump_labels_bento(labels=labels, filename='C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/m485/dino/'+file_name+'_bent.annot', beh_list=label_list)
+#     # np.save(file_name+'_labels', labels)
 
 #%% plot embeddings in UMAP
 import umap
@@ -95,16 +93,29 @@ file = 'C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1.
 embed = np.load(file)['embeddings']
 labels = np.load('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1_labels.npy')
 labels = labels[4:-5]
-
-#%%
 # plt.scatter(x = test[:, 0], y = test[:, 1])
-umap_embed = umap.UMAP(n_neighbors=100, min_dist=0.01).fit(embed)
 
+umap_embed = umap.UMAP(n_neighbors=100, min_dist=0.01).fit(embed)
 umap.plot.points(umap_embed, labels=labels)
 plt.legend('')
 plt.title('z=8')
 plt.show()
 
+#%% cluster the umap embedding
+umap_tf = umap_embed.transform(embed)
+from sklearn.cluster import KMeans
+
+km = KMeans(n_clusters=15, random_state=0).fit(umap_tf)
+km_labels = km.predict(umap_tf)
+
+# try gmm on umap embedding
+umap_gm = GaussianMixture(n_components=4).fit(umap_tf)
+gm_labels = umap_gm.predict(umap_tf)
+
+umap.plot.points(umap_embed, labels=gm_labels)
+# plt.legend('')
+plt.title('umap cluster, gmm')
+plt.show()
 #%% try tsne
 from sklearn.manifold import TSNE
 import seaborn as sns
