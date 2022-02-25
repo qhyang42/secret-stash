@@ -33,7 +33,7 @@ def compute_bout_length(seq):
 #     gm_bic = np.append(gm_bic, gm.bic(embed_test))
 
 #%% load data
-file_path = 'C:/Users/qyx1327/Documents/results/tvae/embeddings/result_zeq8.npz'
+file_path = 'C:/Users/qyx1327/Documents/results/tvae/embeddings/result_centered.npz'
 embed_train, embed_test = load_split_data(file_path)
 #%% train and save the gmms, calculate bic
 
@@ -43,10 +43,10 @@ for n_comp in range(5, 100):
     gm.append(GaussianMixture(n_components=n_comp, covariance_type='diag', max_iter=1000).fit(embed_train))
     gm_bic = np.append(gm_bic, gm[-1].bic(embed_test))
 
-with open('zeq8_gmm_model.pickle', 'wb') as fhandle:
+with open('centered_gmm_model.pickle', 'wb') as fhandle:
     pickle.dump(gm, fhandle)
 
-np.save('zeq8_bic.npy', gm_bic)
+np.save('centered_bic.npy', gm_bic)
 
 #%% plot
 # xaxis = np.arange(5, 100)
@@ -55,14 +55,14 @@ plt.plot(gm_bic)
 # plt.xticks(np.arange(5, 100, 20))
 plt.xlabel('n_component')
 plt.ylabel('bic')
-plt.title('z=8')
+plt.title('z=32, rotated and centered')
 plt.show()
 
 # np.save('C:/Users/qyx1327/Documents/results/msplit_bic.npy', gm_bic)
 
 #%% predict and save labels for testing videos. view labels with video in bento
 # choose n_component = 25
-with open('msplit_gmm_model.pickle', 'rb') as fhandle:
+with open('centered_gmm_model.pickle', 'rb') as fhandle:
     gm = pickle.load(fhandle)
 
 current_model = gm[20]
@@ -89,11 +89,13 @@ for file in iter(file_list):
 #%% plot embeddings in UMAP
 import umap
 
-file = 'C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1.npz'
+# file = 'C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1.npz'
+file = 'C:/Users/qyx1327/Documents/results/tvae/embeddings/result_centered.npz'
 embed = np.load(file)['embeddings']
-labels = np.load('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1_labels.npy')
-labels = labels[4:-5]
+# labels = np.load('C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/results_1_labels.npy')
+# labels = labels[4:-5]
 # plt.scatter(x = test[:, 0], y = test[:, 1])
+labels = gm[0].predict(embed)
 
 umap_embed = umap.UMAP(n_neighbors=100, min_dist=0.01).fit(embed)
 umap.plot.points(umap_embed, labels=labels)
