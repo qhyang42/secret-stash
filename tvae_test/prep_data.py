@@ -137,13 +137,13 @@ np.savez('/media/storage/qiaohan/tvae/data_out_split_centered.npz', data_train =
 #mouse = 'm972'
 mouse = 'm485'
 datadir = '/run/user/1006/gvfs/smb-share:server=fsmresfiles.fsm.northwestern.edu,share=fsmresfiles/Basic_Sciences/Phys/Kennedylab/Parkerlab/Behavior/Clozapine/'
-filelist_test_single = glob.glob(datadir+'*/*/*/*'+mouse+'*/*v1_8.npz') #run for m972 in each conditions
+filelist_test_single = glob.glob(datadir+'*/*/*/*'+mouse+'*/*v1_8.npz') #run for chosen mouse in each conditions
 
 for filedir in filelist_test_single:
     data_test = prep_data_tvae(datadir='', filelist=filedir)
     filename = os.path.basename(filedir).split('.')[0]
-    np.savez('/media/storage/qiaohan/tvae/test_input/test_data_in_' + filename + '.npz', data_train = data_test, data_test = data_test )
-    np.savez('/media/storage/qiaohan/tvae/test_input/test_data_out_' + filename + '.npz', data_train = data_test, data_test = data_test )
+    np.savez('/media/storage/qiaohan/tvae/test_input/centered/test_data_in_' + filename + '.npz', data_train = data_test, data_test = data_test )
+    np.savez('/media/storage/qiaohan/tvae/test_input/centered/test_data_out_' + filename + '.npz', data_train = data_test, data_test = data_test )
 
 
 #%% test
