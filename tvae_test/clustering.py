@@ -74,7 +74,7 @@ for file in iter(file_list):
     labels = np.pad(labels, (4,5))
     file_name = os.path.basename(file).split('.')[0]
     # np.save(file_name+'_labels', labels)
-    label_list = ['label' + str(number) for number in range(25)] # same length as number of nonzero clusters
+    label_list = ['label' + str(number) for number in range(15)] # same length as number of nonzero clusters
     dump_labels_bento(labels=labels, filename='C:/Users/qyx1327/Documents/results/tvae/test_video_embeddings/m485/dino/'+file_name+'_bent.annot', beh_list=label_list)
 
 
