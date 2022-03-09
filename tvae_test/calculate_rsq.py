@@ -2,28 +2,31 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-data = np.load('C:/Users/qyx1327/Documents/results/tvae/results.npz')
+#%%
+data = np.load('C:/Users/qyx1327/Documents/results/tvae/embeddings/result_centered.npz')
 recon = data['reconstructions']
-orig  = data['originals']
+orig = data['originals']
 
 # for 1st frame of all sequences
 rsq = np.array([])
 for i in range(orig.shape[0]):
-    for j in range(orig.shape[1]):
-        orig_cord = orig[i, j, :]
-        recon_cord = recon[i, j, :]
-        #if np.sum(orig_cord - orig_cord.mean()) != 0:
-        rsd = np.sum(np.square(recon_cord-orig_cord))/np.sum(np.square(recon_cord-recon_cord.mean()))
-        #rsd = np.sum(np.square(orig_cord - recon_cord)) / np.sum(np.square(orig_cord - orig_cord.mean()))
-        rsq = np.append(rsq, 1-rsd)
+    orig_cord = orig[i, 5, :]
+    recon_cord = recon[i, 5, :]
+    if np.sum(orig_cord - orig_cord.mean()) != 0:
+        # rsd = np.sum(np.square(recon_cord-orig_cord))/np.sum(np.square(recon_cord-recon_cord.mean()))
+        rsd = np.sum(np.square(orig_cord - recon_cord)) / np.sum(np.square(orig_cord - orig_cord.mean()))
+    rsq = np.append(rsq, 1-rsd)
 
 # todo check for (0,0) in keypoints
 
 #%% plot
 
-plt.hist(rsq, bins=10, log=True)
+plt.hist(rsq, bins=100, log=True)
 #plt.xlim([0.9 ,1])
-plt.title('r_squared')
+plt.xlabel('r squared')
+plt.title('z = 32, aligned')
+plt.xlim([rsq.min()*1.1, 1.1])
+plt.xticks(np.arange(int(rsq.min())-1, 2, 3))
 plt.show()
 
 

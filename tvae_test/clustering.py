@@ -33,7 +33,7 @@ def compute_bout_length(seq):
 #     gm_bic = np.append(gm_bic, gm.bic(embed_test))
 
 #%% load data
-file_path = 'C:/Users/qyx1327/Documents/results/tvae/embeddings/result_centered.npz'
+file_path = 'C:/Users/qyx1327/Documents/results/tvae/embeddings/result_zeq8.npz'
 embed_train, embed_test = load_split_data(file_path)
 #%% train and save the gmms, calculate bic
 
@@ -43,19 +43,22 @@ for n_comp in range(5, 100):
     gm.append(GaussianMixture(n_components=n_comp, covariance_type='diag', max_iter=1000).fit(embed_train))
     gm_bic = np.append(gm_bic, gm[-1].bic(embed_test))
 
-with open('centered_gmm_model.pickle', 'wb') as fhandle:
+with open('z8_gmm_model.pickle', 'wb') as fhandle:
     pickle.dump(gm, fhandle)
 
-np.save('centered_bic.npy', gm_bic)
+np.save('z8_bic.npy', gm_bic)
 
 #%% plot
-# xaxis = np.arange(5, 100)
-plt.plot(gm_bic)
-# plt.xlim([5, 100])
-# plt.xticks(np.arange(5, 100, 20))
+xaxis = np.arange(5, 100)
+plt.plot(xaxis, gm_bic_32)
+plt.plot(xaxis, gm_bic_8)
+plt.plot(xaxis, gm_bic_centered)
+plt.xlim([5, 100])
+plt.xticks(np.arange(5, 100, 10))
 plt.xlabel('n_component')
 plt.ylabel('bic')
-plt.title('z=32, rotated and centered')
+plt.title('BIC of GMMs')
+plt.legend(['z=32, not aligned', 'z=8, not aligned', 'z=32, aligned'])
 plt.show()
 
 # np.save('C:/Users/qyx1327/Documents/results/msplit_bic.npy', gm_bic)
