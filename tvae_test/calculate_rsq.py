@@ -21,12 +21,13 @@ for i in range(orig.shape[0]):
 
 #%% plot
 
-plt.hist(rsq, bins=100, log=True)
-#plt.xlim([0.9 ,1])
+plt.hist(rsq, bins=100, range=[-31, 2], log=True)
+# plt.xlim([-31 ,1])
 plt.xlabel('r squared')
 plt.title('z = 32, aligned')
 plt.xlim([rsq.min()*1.1, 1.1])
-plt.xticks(np.arange(int(rsq.min())-1, 2, 3))
+# plt.xticks(np.arange(int(rsq.min())-1, 2, 3))
+plt.xticks(np.arange(-32, 2, 3))
 plt.show()
 
 
